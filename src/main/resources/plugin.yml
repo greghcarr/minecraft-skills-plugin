@@ -1,0 +1,10 @@
+name: SkillManager
+version: ${project.version}
+main: me.foxwhelp.skillmanager.SkillManager
+api-version: 1.16
+authors: [Foxwhelp]
+description: A Paper (Minecraft) plugin that provides support for a skill and reward system.
+commands:
+  test:
+    description: Used for testing various things.
+    usage: 'Usage: /test'
