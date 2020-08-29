@@ -14,4 +14,8 @@ public class SkillSet {
     public Slayer getSlayer() {
         return slayer;
     }
+
+    public void saveSkillsToNBT() {
+        slayer.saveToNBT();
+    }
 }

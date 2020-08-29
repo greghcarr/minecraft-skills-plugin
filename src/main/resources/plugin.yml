@@ -8,3 +8,6 @@ commands:
   test:
     description: Used for testing various things.
     usage: 'Usage: /test'
+  slayer:
+    description: Used for commands relating to the Slayer skill.
+    usage: 'Usage: /slayer task|stats'
