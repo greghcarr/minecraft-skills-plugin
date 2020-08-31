@@ -10,8 +10,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static me.foxwhelp.skillmanager.SkillManager.MAX_LEVEL;
-
 public class GenericSkill {
 
     private double xp;
@@ -24,6 +22,26 @@ public class GenericSkill {
     PersistentDataContainer playerData;
     Server server;
     SkillManager skillManager;
+
+    /**
+     * table of XP values required for progressing to the given level
+     * LEVEL_UP_TABLE[x] = XP required to reach level x
+     */
+    public static final int[] LEVEL_XP_REQUIREMENT = {
+            0,      200,    400,    600,    800,    1000,   1200,   1400,   1600,   1800,
+            2000,   2200,   2400,   2600,   2800,   3000,   3200,   3400,   3600,   3800,
+            4000,   4500,   5000,   5500,   6000,   6500,   7000,   7500,   8000,   9000,
+            10000,  11000,  12000,  13000,  14000,  15000,  16000,  17000,  18000,  19000,
+            20000,  21000,  22000,  23000,  24000,  25000,  26000,  27000,  28000,  29000,
+            30000,  31000,  32000,  33000,  34000,  35000,  36000,  37000,  38000,  39000,
+            40000,  41000,  42000,  43000,  44000,  45000,  46000,  47000,  48000,  49000,
+            50000,  52000,  54000,  56000,  58000,  60000,  62000,  64000,  66000,  68000,
+            70000,  72000,  74000,  76000,  78000,  80000,  82000,  84000,  86000,  88000,
+            90000,  94000,  98000,  102000, 106000, 110000, 114000, 118000, 122000, 126000
+    };
+
+    //max level is one less than the length of the level up table
+    public static final int MAX_LEVEL = LEVEL_XP_REQUIREMENT.length - 1;
 
     GenericSkill(Player p){
         server = Bukkit.getServer();
@@ -93,15 +111,28 @@ public class GenericSkill {
          */
         this.xp += d;
         //while player isn't max level and player XP is greater than the requirement for the next level
-        while (level < MAX_LEVEL && xp >= SkillManager.LEVEL_XP_REQUIREMENT[level + 1]) {
-            //level up the skill
-            levelUp();
+        if (level < MAX_LEVEL) {
+            while(xp >= LEVEL_XP_REQUIREMENT[level + 1]) {
+                //level up the skill
+                levelUp();
+                if(level == MAX_LEVEL) break;
+            }
         }
     }
 
     private void levelUp() {
         this.level++;
-        player.sendMessage("Congratulations! You just reached level " + ChatColor.GREEN + level + ChatColor.WHITE + " in the " + ChatColor.AQUA + this.toString() + ChatColor.WHITE + " skill!");
+        player.sendMessage("Congratulations! You just reached level "
+                + ChatColor.GREEN + level
+                + ChatColor.WHITE + " in the "
+                + ChatColor.AQUA + this.toString()
+                + ChatColor.WHITE + " skill!");
+        player.sendMessage("To reach level " + ChatColor.GREEN + (level+1)
+                + ChatColor.WHITE + ", you need "
+                + ChatColor.RED + (LEVEL_XP_REQUIREMENT[level+1] - getXp())
+                + ChatColor.WHITE + " more "
+                + ChatColor.AQUA + this.toString()
+                + ChatColor.WHITE + " XP.");
     }
 
     protected void resetStats() {
