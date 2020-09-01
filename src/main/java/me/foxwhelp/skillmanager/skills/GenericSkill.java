@@ -12,25 +12,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class GenericSkill {
 
-    private double xp;
-    private final static String XP_TAG_SUFFIX = "XP";
-    NamespacedKey xpKey;
-    private int level;
-    private final static String LEVEL_TAG_SUFFIX = "Level";
-    NamespacedKey levelKey;
-    Player player;
-    PersistentDataContainer playerData;
-    Server server;
-    SkillManager skillManager;
-
     /**
      * table of XP values required for progressing to the given level
      * LEVEL_UP_TABLE[x] = XP required to reach level x
      */
     public static final int[] LEVEL_XP_REQUIREMENT = {
-            0,      200,    400,    600,    800,    1000,   1200,   1400,   1600,   1800,
-            2000,   2200,   2400,   2600,   2800,   3000,   3200,   3400,   3600,   3800,
-            4000,   4500,   5000,   5500,   6000,   6500,   7000,   7500,   8000,   9000,
+            0,      100,    200,    300,    400,    500,   600,   700,   800,   900,
+            1000,   1200,   1400,   1600,   1800,   2000,   2200,   2400,   2600,   2800,
+            3000,   3600,   4200,   4800,   5400,   6000,   6600,   7200,   7800,   8400,
             10000,  11000,  12000,  13000,  14000,  15000,  16000,  17000,  18000,  19000,
             20000,  21000,  22000,  23000,  24000,  25000,  26000,  27000,  28000,  29000,
             30000,  31000,  32000,  33000,  34000,  35000,  36000,  37000,  38000,  39000,
@@ -39,17 +28,26 @@ public class GenericSkill {
             70000,  72000,  74000,  76000,  78000,  80000,  82000,  84000,  86000,  88000,
             90000,  94000,  98000,  102000, 106000, 110000, 114000, 118000, 122000, 126000
     };
-
     //max level is one less than the length of the level up table
     public static final int MAX_LEVEL = LEVEL_XP_REQUIREMENT.length - 1;
+    private final static String XP_TAG_SUFFIX = "XP";
+    private final static String LEVEL_TAG_SUFFIX = "Level";
+    NamespacedKey xpKey;
+    NamespacedKey levelKey;
+    Player player;
+    PersistentDataContainer playerData;
+    Server server;
+    SkillManager skillManager;
+    private double xp;
+    private int level;
 
     GenericSkill(Player p){
         server = Bukkit.getServer();
         skillManager = JavaPlugin.getPlugin(SkillManager.class);
         player = p;
         playerData = player.getPersistentDataContainer();
-        xpKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.toString() + XP_TAG_SUFFIX);
-        levelKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.toString() + LEVEL_TAG_SUFFIX);
+        xpKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.skillIdentifier() + XP_TAG_SUFFIX);
+        levelKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.skillIdentifier() + LEVEL_TAG_SUFFIX);
         readGenericFromNBT();
     }
 
@@ -140,6 +138,10 @@ public class GenericSkill {
         xp = 0;
         level = 0;
         saveToNBT();
+    }
+
+    public String skillIdentifier(){
+        return "GenericSkill";
     }
 
     @Override

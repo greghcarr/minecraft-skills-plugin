@@ -3,18 +3,16 @@ package me.foxwhelp.skillmanager;
 import me.foxwhelp.skillmanager.events.EntityDeathListener;
 import me.foxwhelp.skillmanager.events.PlayerJoinListener;
 import me.foxwhelp.skillmanager.events.PlayerQuitListener;
-import me.foxwhelp.skillmanager.loot.LootGenerator;
+import me.foxwhelp.skillmanager.loot.SlayerLootGenerator;
 import me.foxwhelp.skillmanager.skills.Slayer;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public final class SkillManager extends JavaPlugin {
@@ -49,7 +47,8 @@ public final class SkillManager extends JavaPlugin {
             //System.out.println("Foxwhelp's Slayer XP: " + this.getSkillSet().getSlayer().getXp());
             if(sender instanceof Player) {
                 Player p = (Player) sender;
-                p.getInventory().addItem(LootGenerator.generateLoot());
+                ItemStack loot = SlayerLootGenerator.generateLoot(getSkillSet(p).getSlayer().getTask().mobDifficulty);
+                p.getInventory().addItem(loot);
 
             }
             return true;

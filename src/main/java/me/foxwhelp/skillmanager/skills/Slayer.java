@@ -11,7 +11,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Slayer extends GenericSkill {
 
@@ -25,74 +27,95 @@ public class Slayer extends GenericSkill {
     private final static String TASKS_COMPLETED_TAG_SUFFIX = "TasksCompleted";
     NamespacedKey slayerTasksCompletedKey;
 
+    public enum DifficultyLevel {
+        ZERO(0),ONE(1),TWO(2),THREE(3),FOUR(4),FIVE(5),SIX(6),SEVEN(7);
+        public final int num;
+        private DifficultyLevel(int diff){
+            num = diff;
+        }
+
+        private static final HashMap<Integer, DifficultyLevel> BY_NUMBER = new HashMap();
+
+        static {
+            for(DifficultyLevel dl : values()){
+                BY_NUMBER.put(dl.num, dl);
+            }
+        }
+
+        public static DifficultyLevel byInt(int difficultyLevel){
+            return BY_NUMBER.get(difficultyLevel);
+        }
+    };
+
     public enum SlayerMob {
+        //placeholder for storing a non-null value in the NBT
+        NONE("NONE", null, DifficultyLevel.ZERO, -1, -1),
+
         //difficulty 1
-        NONE("NONE", null, -1, -1, -1),
-        PIG("Pig", EntityType.PIG, 1, 10, 20),
-        COW("Cow", EntityType.COW, 1, 10, 20),
-        CHICKEN("Chicken", EntityType.CHICKEN, 1, 10, 20),
-        SHEEP("Sheep", EntityType.SHEEP, 1, 10, 20),
-        SQUID("Squid", EntityType.SQUID, 1, 8, 15),
-        RABBIT("Rabbit", EntityType.RABBIT, 1, 8, 15),
-        COD("Cod", EntityType.COD, 1, 10, 20),
-        SALMON("Salmon", EntityType.SALMON, 1, 10, 20),
-        TROPICAL_FISH("Tropical Fish", EntityType.TROPICAL_FISH, 1, 10, 20),
-        MOOSHROOM("Mooshroom", EntityType.MUSHROOM_COW, 1, 10, 20),
-        BAT("Bat", EntityType.BAT, 1, 3, 7),
-        FOX("Fox", EntityType.FOX, 1, 8, 15),
-        TURTLE("Turtle", EntityType.TURTLE, 1, 3, 7),
+        PIG("Pig", EntityType.PIG, DifficultyLevel.ONE, 10, 20),
+        COW("Cow", EntityType.COW, DifficultyLevel.ONE, 10, 20),
+        CHICKEN("Chicken", EntityType.CHICKEN, DifficultyLevel.ONE, 10, 20),
+        SHEEP("Sheep", EntityType.SHEEP, DifficultyLevel.ONE, 10, 20),
+        SQUID("Squid", EntityType.SQUID, DifficultyLevel.ONE, 8, 15),
+        RABBIT("Rabbit", EntityType.RABBIT, DifficultyLevel.ONE, 8, 15),
+        COD("Cod", EntityType.COD, DifficultyLevel.ONE, 10, 20),
+        SALMON("Salmon", EntityType.SALMON, DifficultyLevel.ONE, 10, 20),
+        TROPICAL_FISH("Tropical Fish", EntityType.TROPICAL_FISH, DifficultyLevel.ONE, 10, 20),
+        MOOSHROOM("Mooshroom", EntityType.MUSHROOM_COW, DifficultyLevel.ONE, 10, 20),
+        BAT("Bat", EntityType.BAT, DifficultyLevel.ONE, 3, 7),
+        FOX("Fox", EntityType.FOX, DifficultyLevel.ONE, 8, 15),
+        TURTLE("Turtle", EntityType.TURTLE, DifficultyLevel.ONE, 3, 7),
 
         //difficulty 2
-        SPIDER("Spider", EntityType.SPIDER, 2, 15, 30),
-        ZOMBIE("Zombie", EntityType.ZOMBIE, 2, 15, 30),
-        HUSK("Husk", EntityType.HUSK, 2, 15, 30),
-        SLIME("Slime", EntityType.SLIME, 2, 15, 30),
-        BEE("Bee", EntityType.BEE, 2, 3, 7),
+        SPIDER("Spider", EntityType.SPIDER, DifficultyLevel.TWO, 15, 30),
+        ZOMBIE("Zombie", EntityType.ZOMBIE, DifficultyLevel.TWO, 15, 30),
+        HUSK("Husk", EntityType.HUSK, DifficultyLevel.TWO, 15, 30),
+        SLIME("Slime", EntityType.SLIME, DifficultyLevel.TWO, 15, 30),
+        BEE("Bee", EntityType.BEE, DifficultyLevel.TWO, 3, 7),
 
         //difficulty 3
-        SKELETON("Skeleton", EntityType.SKELETON, 3, 20, 40),
-        CREEPER("Creeper", EntityType.CREEPER, 3, 20, 40),
-        SILVERFISH("Silverfish", EntityType.SILVERFISH, 3, 20, 40),
-        CAVE_SPIDER("Cave Spider", EntityType.CAVE_SPIDER, 3, 20, 40),
-        PIGLIN("Piglin", EntityType.PIGLIN, 3, 20, 40),
-        DROWNED("Drowned", EntityType.DROWNED, 3, 20, 40),
-        ZOMBIFIED_PIGLIN("Zombified Piglin", EntityType.ZOMBIFIED_PIGLIN, 3, 20, 40),
-        MAGMA_CUBE("Magma Cube", EntityType.MAGMA_CUBE, 3, 20, 40),
-        STRAY("Stray", EntityType.MAGMA_CUBE, 3, 20, 40),
-        PILLAGER("Pillager", EntityType.PILLAGER, 3, 20, 40),
-        GHAST("Ghast", EntityType.GHAST, 3, 7, 15),
-        POLAR_BEAR("Polar Bear", EntityType.POLAR_BEAR, 3, 7, 15),
+        SKELETON("Skeleton", EntityType.SKELETON, DifficultyLevel.THREE, 20, 40),
+        CREEPER("Creeper", EntityType.CREEPER, DifficultyLevel.THREE, 20, 40),
+        SILVERFISH("Silverfish", EntityType.SILVERFISH, DifficultyLevel.THREE, 20, 40),
+        CAVE_SPIDER("Cave Spider", EntityType.CAVE_SPIDER, DifficultyLevel.THREE, 20, 40),
+        PIGLIN("Piglin", EntityType.PIGLIN, DifficultyLevel.THREE, 20, 40),
+        DROWNED("Drowned", EntityType.DROWNED, DifficultyLevel.THREE, 20, 40),
+        ZOMBIFIED_PIGLIN("Zombified Piglin", EntityType.ZOMBIFIED_PIGLIN, DifficultyLevel.THREE, 20, 40),
+        MAGMA_CUBE("Magma Cube", EntityType.MAGMA_CUBE, DifficultyLevel.THREE, 20, 40),
+        STRAY("Stray", EntityType.STRAY, DifficultyLevel.THREE, 20, 40),
+        PILLAGER("Pillager", EntityType.PILLAGER, DifficultyLevel.THREE, 20, 40),
+        GHAST("Ghast", EntityType.GHAST, DifficultyLevel.THREE, 7, 15),
+        POLAR_BEAR("Polar Bear", EntityType.POLAR_BEAR, DifficultyLevel.THREE, 7, 15),
 
         //difficulty 4
-        ENDERMAN("Enderman", EntityType.ENDERMAN, 4, 20, 40),
-        BLAZE("Blaze", EntityType.BLAZE, 4, 20, 40),
-        GUARDIAN("Guardian", EntityType.GUARDIAN, 4, 20, 40),
-        HOGLIN("Hoglin", EntityType.HOGLIN, 4, 20, 40),
-        WITHER_SKELETON("Wither Skeleton", EntityType.WITHER_SKELETON, 4, 20, 30),
-        SHULKER("Shulker", EntityType.SHULKER, 4, 20, 40),
-        VINDICATOR("Vindicator", EntityType.VINDICATOR, 4, 7, 15),
-        WITCH("Witch", EntityType.WITCH, 4, 5, 10),
+        ENDERMAN("Enderman", EntityType.ENDERMAN, DifficultyLevel.FOUR, 20, 40),
+        BLAZE("Blaze", EntityType.BLAZE, DifficultyLevel.FOUR, 20, 40),
+        GUARDIAN("Guardian", EntityType.GUARDIAN, DifficultyLevel.FOUR, 20, 40),
+        HOGLIN("Hoglin", EntityType.HOGLIN, DifficultyLevel.FOUR, 20, 40),
+        WITHER_SKELETON("Wither Skeleton", EntityType.WITHER_SKELETON, DifficultyLevel.FOUR, 20, 30),
+        SHULKER("Shulker", EntityType.SHULKER, DifficultyLevel.FOUR, 20, 40),
+        VINDICATOR("Vindicator", EntityType.VINDICATOR, DifficultyLevel.FOUR, 7, 15),
+        WITCH("Witch", EntityType.WITCH, DifficultyLevel.FOUR, 5, 10),
 
         //difficulty 5
-        PIGLIN_BRUTE("Piglin Brute", EntityType.PIGLIN_BRUTE, 5, 10, 20),
-        EVOKER("Evoker", EntityType.EVOKER, 5, 5, 10),
-        RAVAGER("Ravager", EntityType.RAVAGER, 5, 5, 10),
+        PIGLIN_BRUTE("Piglin Brute", EntityType.PIGLIN_BRUTE, DifficultyLevel.FIVE, 10, 20),
+        EVOKER("Evoker", EntityType.EVOKER, DifficultyLevel.FIVE, 5, 10),
+        RAVAGER("Ravager", EntityType.RAVAGER, DifficultyLevel.FIVE, 5, 10),
 
         //difficulty 6
-        ELDER_GUARDIAN("Elder Guardian", EntityType.ELDER_GUARDIAN, 6, 3, 6),
+        ELDER_GUARDIAN("Elder Guardian", EntityType.ELDER_GUARDIAN, DifficultyLevel.SIX, 3, 6),
 
         //difficulty 7
-        ENDER_DRAGON("Ender Dragon", EntityType.ENDER_DRAGON, 7, 1, 4),
-        WITHER("Wither", EntityType.WITHER, 7, 1, 4);
-
+        ENDER_DRAGON("Ender Dragon", EntityType.ENDER_DRAGON, DifficultyLevel.SEVEN, 1, 4),
+        WITHER("Wither", EntityType.WITHER, DifficultyLevel.SEVEN, 1, 4);
 
         public final String mobName;
         public final EntityType mobType;
-        public final int mobDifficulty;
+        public final DifficultyLevel mobDifficulty;
         public final int taskMinimum;
         public final int taskMaximum;
 
-        private SlayerMob(String mn, EntityType mt, int difficulty, int baseTaskMin, int baseTaskMax) {
+        private SlayerMob(String mn, EntityType mt, DifficultyLevel difficulty, int baseTaskMin, int baseTaskMax) {
             this.mobName = mn;
             this.mobType = mt;
             this.mobDifficulty = difficulty;
@@ -112,14 +135,14 @@ public class Slayer extends GenericSkill {
         /**
          * Returns a random mob within the specified difficulty.
          */
-        public static SlayerMob mobDifficultyBetween(int minDifficulty, int maxDifficulty) {
+        public static SlayerMob mobDifficultyBetween(DifficultyLevel minDifficulty, DifficultyLevel maxDifficulty) {
             ArrayList<SlayerMob> mobs = new ArrayList<>();
             for(SlayerMob tm : values()) {
-                if(tm.mobDifficulty >= minDifficulty && tm.mobDifficulty <= maxDifficulty) {
+                if(tm.mobDifficulty.num >= minDifficulty.num && tm.mobDifficulty.num <= maxDifficulty.num) {
                     mobs.add(tm);
                 }
             }
-            Random rnd = new Random();
+            SecureRandom rnd = new SecureRandom();
             return mobs.get(rnd.nextInt(mobs.size()));
         }
 
@@ -129,7 +152,7 @@ public class Slayer extends GenericSkill {
          * @return a suitable amount of mobs to be killed for a task
          */
         public static int randomTaskNumber(SlayerMob sm) {
-            Random rnd = new Random();
+            SecureRandom rnd = new SecureRandom();
             return (rnd.nextInt(((sm.taskMaximum + 1) - sm.taskMinimum)) + sm.taskMinimum);
         }
 
@@ -145,9 +168,9 @@ public class Slayer extends GenericSkill {
 
     public Slayer(Player p) {
         super(p);
-        slayerTaskTypeKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.toString() + TASK_TYPE_TAG_SUFFIX);
-        slayerTaskRemainingKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.toString() + TASK_REMAINING_TAG_SUFFIX);
-        slayerTasksCompletedKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.toString() + TASKS_COMPLETED_TAG_SUFFIX);
+        slayerTaskTypeKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.skillIdentifier() + TASK_TYPE_TAG_SUFFIX);
+        slayerTaskRemainingKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.skillIdentifier() + TASK_REMAINING_TAG_SUFFIX);
+        slayerTasksCompletedKey = new NamespacedKey(JavaPlugin.getPlugin(SkillManager.class), this.skillIdentifier() + TASKS_COMPLETED_TAG_SUFFIX);
         readSkillSpecificFromNBT();
     }
 
@@ -197,7 +220,7 @@ public class Slayer extends GenericSkill {
         if (killIsOnTask(e)) {
             //on task kill
             //award (health point that the mob had * difficulty of the mob)
-            addXp(((Attributable) e).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * taskMob.mobDifficulty);
+            addXp(((Attributable) e).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * taskMob.mobDifficulty.num);
             //player.sendMessage("Your Slayer XP is now " + getXp() + ".");
             if (taskRemaining > 0) {
                 taskRemaining--;
@@ -224,37 +247,37 @@ public class Slayer extends GenericSkill {
 
         //if under level 10 Slayer, 1 difficulty mob tasks only
         if (playerLevel < 10) {
-            taskMob = SlayerMob.mobDifficultyBetween(1,1);
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.ONE,DifficultyLevel.ONE);
         }
 
         //level 10-19, 2 to 2 difficulty tasks
-        if(playerLevel >= 10 && playerLevel < 20){
-            taskMob = SlayerMob.mobDifficultyBetween(2,2);
+        else if(playerLevel >= 10 && playerLevel < 20){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.TWO,DifficultyLevel.TWO);
         }
 
         //level 20-29, 3 to 3 difficulty tasks
-        if(playerLevel >= 20 && playerLevel < 30){
-            taskMob = SlayerMob.mobDifficultyBetween(3,3);
+        else if(playerLevel >= 20 && playerLevel < 30){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.THREE,DifficultyLevel.THREE);
         }
 
         //level 30-44, 3 to 4 difficulty tasks
-        if(playerLevel >= 30 && playerLevel < 45){
-            taskMob = SlayerMob.mobDifficultyBetween(3,4);
+        else if(playerLevel >= 30 && playerLevel < 45){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.THREE,DifficultyLevel.FOUR);
         }
 
         //level 45-59, 4 to 5 difficulty tasks
-        if(playerLevel >= 45 && playerLevel < 60){
-            taskMob = SlayerMob.mobDifficultyBetween(4,5);
+        else if(playerLevel >= 45 && playerLevel < 60){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.FOUR,DifficultyLevel.FIVE);
         }
 
         //level 60-74, 4 to 6 difficulty tasks
-        if(playerLevel >= 60 && playerLevel < 75){
-            taskMob = SlayerMob.mobDifficultyBetween(4,6);
+        else if(playerLevel >= 60 && playerLevel < 75){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.FOUR,DifficultyLevel.SIX);
         }
 
         //level 75-90, 4 to 7 difficulty tasks
-        if(playerLevel >= 75){
-            taskMob = SlayerMob.mobDifficultyBetween(4,7);
+        else if(playerLevel >= 75){
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.FOUR,DifficultyLevel.SEVEN);
         }
 
         taskRemaining = SlayerMob.randomTaskNumber(taskMob);
@@ -267,6 +290,10 @@ public class Slayer extends GenericSkill {
         taskRemaining = 0;
         tasksCompleted++;
         saveToNBT();
+    }
+
+    public SlayerMob getTask(){
+        return taskMob;
     }
 
     protected void readSkillSpecificFromNBT() {
@@ -327,6 +354,12 @@ public class Slayer extends GenericSkill {
         taskMob = SlayerMob.NONE;
         taskRemaining = 0;
         tasksCompleted = 0;
+        saveToNBT();
+    }
+
+    @Override
+    public String skillIdentifier(){
+        return "Slayer";
     }
 
     @Override
