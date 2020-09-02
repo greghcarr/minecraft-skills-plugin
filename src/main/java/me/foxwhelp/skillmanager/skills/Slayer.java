@@ -1,6 +1,7 @@
 package me.foxwhelp.skillmanager.skills;
 
 import me.foxwhelp.skillmanager.SkillManager;
+import me.foxwhelp.skillmanager.loot.SlayerLootGenerator;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attributable;
@@ -8,6 +9,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,16 +31,16 @@ public class Slayer extends GenericSkill {
 
     public enum DifficultyLevel {
         ZERO(0),ONE(1),TWO(2),THREE(3),FOUR(4),FIVE(5),SIX(6),SEVEN(7);
-        public final int num;
+        public final int NUM;
         private DifficultyLevel(int diff){
-            num = diff;
+            NUM = diff;
         }
 
         private static final HashMap<Integer, DifficultyLevel> BY_NUMBER = new HashMap();
 
         static {
             for(DifficultyLevel dl : values()){
-                BY_NUMBER.put(dl.num, dl);
+                BY_NUMBER.put(dl.NUM, dl);
             }
         }
 
@@ -109,18 +111,18 @@ public class Slayer extends GenericSkill {
         ENDER_DRAGON("Ender Dragon", EntityType.ENDER_DRAGON, DifficultyLevel.SEVEN, 1, 4),
         WITHER("Wither", EntityType.WITHER, DifficultyLevel.SEVEN, 1, 4);
 
-        public final String mobName;
-        public final EntityType mobType;
-        public final DifficultyLevel mobDifficulty;
-        public final int taskMinimum;
-        public final int taskMaximum;
+        public final String NAME;
+        public final EntityType ENTITY_TYPE;
+        public final DifficultyLevel DIFFICULTY;
+        public final int TASK_MINIMUM;
+        public final int TASK_MAXIMUM;
 
         private SlayerMob(String mn, EntityType mt, DifficultyLevel difficulty, int baseTaskMin, int baseTaskMax) {
-            this.mobName = mn;
-            this.mobType = mt;
-            this.mobDifficulty = difficulty;
-            this.taskMinimum = baseTaskMin;
-            this.taskMaximum = baseTaskMax;
+            this.NAME = mn;
+            this.ENTITY_TYPE = mt;
+            this.DIFFICULTY = difficulty;
+            this.TASK_MINIMUM = baseTaskMin;
+            this.TASK_MAXIMUM = baseTaskMax;
         }
 
         //map of mobs by name
@@ -128,7 +130,7 @@ public class Slayer extends GenericSkill {
 
         static {
             for (SlayerMob sm : values()) {
-                BY_NAME.put(sm.mobName, sm);
+                BY_NAME.put(sm.NAME, sm);
             }
         }
 
@@ -138,7 +140,7 @@ public class Slayer extends GenericSkill {
         public static SlayerMob mobDifficultyBetween(DifficultyLevel minDifficulty, DifficultyLevel maxDifficulty) {
             ArrayList<SlayerMob> mobs = new ArrayList<>();
             for(SlayerMob tm : values()) {
-                if(tm.mobDifficulty.num >= minDifficulty.num && tm.mobDifficulty.num <= maxDifficulty.num) {
+                if(tm.DIFFICULTY.NUM >= minDifficulty.NUM && tm.DIFFICULTY.NUM <= maxDifficulty.NUM) {
                     mobs.add(tm);
                 }
             }
@@ -153,7 +155,7 @@ public class Slayer extends GenericSkill {
          */
         public static int randomTaskNumber(SlayerMob sm) {
             SecureRandom rnd = new SecureRandom();
-            return (rnd.nextInt(((sm.taskMaximum + 1) - sm.taskMinimum)) + sm.taskMinimum);
+            return (rnd.nextInt(((sm.TASK_MAXIMUM + 1) - sm.TASK_MINIMUM)) + sm.TASK_MINIMUM);
         }
 
         public static SlayerMob getSlayerMob(String name) {
@@ -162,7 +164,7 @@ public class Slayer extends GenericSkill {
 
         @Override
         public String toString() {
-            return mobName;
+            return NAME;
         }
     }
 
@@ -184,10 +186,10 @@ public class Slayer extends GenericSkill {
                     if (taskMob.equals(SlayerMob.NONE)) {
                         //player has no task, assign one and inform them
                         newTask();
-                        player.sendMessage("Your new Slayer task is to kill " + ChatColor.RED + taskRemaining + ' ' + taskMob + "s.");
+                        player.sendMessage("Your new Slayer task is to kill " + ChatColor.RED + taskRemaining + ' ' + taskMob + ".");
                     } else {
                         //player has a task, give details
-                        player.sendMessage("Your current Slayer task is to kill " + ChatColor.RED + taskRemaining + ' ' + taskMob + "s.");
+                        player.sendMessage("Your current Slayer task is to kill " + ChatColor.RED + taskRemaining + ' ' + taskMob + ".");
                     }
 
                 }
@@ -220,13 +222,15 @@ public class Slayer extends GenericSkill {
         if (killIsOnTask(e)) {
             //on task kill
             //award (health point that the mob had * difficulty of the mob)
-            addXp(((Attributable) e).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * taskMob.mobDifficulty.num);
+            addXp(((Attributable) e).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * taskMob.DIFFICULTY.NUM);
             //player.sendMessage("Your Slayer XP is now " + getXp() + ".");
             if (taskRemaining > 0) {
                 taskRemaining--;
             }
+            if(taskRemaining % 5 == 0 && taskRemaining != 0) {
+                player.sendMessage("You need to kill " + ChatColor.RED + taskRemaining + ' ' + taskMob.NAME + ChatColor.WHITE + " in order to complete your " + this.toString() + " task.");
+            }
             if (taskRemaining <= 0) {
-                player.sendMessage(ChatColor.GREEN + "Congratulations! " + ChatColor.WHITE + "You've completed your Slayer task.");
                 completeTask();
             }
             saveToNBT();
@@ -234,7 +238,7 @@ public class Slayer extends GenericSkill {
     }
 
     private boolean killIsOnTask(Entity e) {
-        return e.getType().equals(taskMob.mobType);
+        return e.getType().equals(taskMob.ENTITY_TYPE);
     }
 
     private void newTask() {
@@ -286,6 +290,21 @@ public class Slayer extends GenericSkill {
     }
 
     private void completeTask() {
+        player.sendMessage(ChatColor.GREEN + "Congratulations! " + ChatColor.WHITE + "You've completed your " + this.toString() + " task.");
+
+        //if inventory is full
+        if(player.getInventory().firstEmpty() == -1) {
+            //notify the player
+            player.sendMessage("Your inventory was full! You should've received a level " + taskMob.DIFFICULTY.NUM + " reward. Please contact the admin.");
+        }
+        else {
+            //generate a loot item from the table
+            ItemStack lootItem = SlayerLootGenerator.generateLoot(taskMob.DIFFICULTY);
+            player.sendMessage("Your reward is " + ChatColor.LIGHT_PURPLE + lootItem.getAmount() + " " + lootItem.getType().toString().replace('_', ' ').toLowerCase() + ".");
+            //give it to the player
+            player.getInventory().addItem(lootItem);
+        }
+
         taskMob = SlayerMob.NONE;
         taskRemaining = 0;
         tasksCompleted++;
@@ -336,7 +355,7 @@ public class Slayer extends GenericSkill {
     }
 
     public void saveTaskTypeToNBT() {
-        playerData.set(slayerTaskTypeKey, PersistentDataType.STRING, taskMob.mobName);
+        playerData.set(slayerTaskTypeKey, PersistentDataType.STRING, taskMob.NAME);
     }
 
     public void saveTaskRemainingToNBT() {

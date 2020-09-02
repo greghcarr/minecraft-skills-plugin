@@ -127,7 +127,7 @@ public class GenericSkill {
                 + ChatColor.WHITE + " skill!");
         player.sendMessage("To reach level " + ChatColor.GREEN + (level+1)
                 + ChatColor.WHITE + ", you need "
-                + ChatColor.RED + (LEVEL_XP_REQUIREMENT[level+1] - getXp())
+                + ChatColor.RED + ((int)(LEVEL_XP_REQUIREMENT[level+1] - getXp()))
                 + ChatColor.WHITE + " more "
                 + ChatColor.AQUA + this.toString()
                 + ChatColor.WHITE + " XP.");

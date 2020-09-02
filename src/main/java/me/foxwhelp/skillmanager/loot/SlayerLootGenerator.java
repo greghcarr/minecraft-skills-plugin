@@ -5,59 +5,57 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SlayerLootGenerator {
 
-    public enum SlayerLootItem {
+    private static HashMap<Slayer.DifficultyLevel, ArrayList<LootTableEntry>> lootTable = new HashMap<>();
 
-        BIRCH_LOG("Birch Log",  Material.BIRCH_LOG, 10, 20),
-        OAK_LOG("Oak Log",  Material.OAK_LOG, 10, 20),
-        COAL("Coal", Material.COAL,20, 40),
-        SHULKER_BOX("Shulker Box", Material.SHULKER_BOX, 1, 1),
-        CONDUIT("Conduit", Material.CONDUIT, 1, 1),
-        DRAGON_EGG("Dragon Egg", Material.DRAGON_EGG, 1, 1);
-
-        public final String name;
-        public final int minQuantity;
-        public final int maxQuantity;
-        public final Material material;
-
-        SlayerLootItem(String name, Material material, int minQuantity, int maxQuantity) {
-            this.name = name;
-            this.material = material;
-            this.minQuantity = minQuantity;
-            this.maxQuantity = maxQuantity;
+    static {
+        for(Slayer.DifficultyLevel dl : Slayer.DifficultyLevel.values()) {
+            lootTable.put(dl, new ArrayList<>());
         }
 
-        public static SlayerLootItem randomItemForDifficulty(Slayer.DifficultyLevel level) {
-            SecureRandom rnd = new SecureRandom();
-            SlayerLootItem lootItem;
+        //all loot table item initializations
+        //level 1
+        addItemToLootTable(Slayer.DifficultyLevel.ONE, new LootTableEntry(Material.BIRCH_LOG,                   10,     20),    1);
+        addItemToLootTable(Slayer.DifficultyLevel.ONE, new LootTableEntry(Material.COOKED_BEEF,                 20,     25),    1);
 
-            //TODO remove default item for testing
-            lootItem = BIRCH_LOG;
+        //level 2
+        addItemToLootTable(Slayer.DifficultyLevel.TWO, new LootTableEntry(Material.IRON_BARS,                   10,     20),    1);
+        addItemToLootTable(Slayer.DifficultyLevel.TWO, new LootTableEntry(Material.BOW,                         1,      1),     1);
 
-            return lootItem;
-        }
+        //level 3
+        addItemToLootTable(Slayer.DifficultyLevel.THREE, new LootTableEntry(Material.SHULKER_BOX,               1,      1),     1);
 
-        public static int randomQuantityForItem(SlayerLootItem item){
-            SecureRandom rnd = new SecureRandom();
-            return (rnd.nextInt(((item.maxQuantity + 1) - item.minQuantity)) + item.minQuantity);
+        //level 4
+        addItemToLootTable(Slayer.DifficultyLevel.FOUR, new LootTableEntry(Material.DIAMOND,                    5,      20),    1);
+
+        //level 5
+        addItemToLootTable(Slayer.DifficultyLevel.FIVE, new LootTableEntry(Material.NETHERITE_SCRAP,            1,      1),     1);
+
+        //level 6
+        addItemToLootTable(Slayer.DifficultyLevel.SIX, new LootTableEntry(Material.NETHERITE_CHESTPLATE,        1,      1),     1);
+
+        //level 7
+        addItemToLootTable(Slayer.DifficultyLevel.SEVEN, new LootTableEntry(Material.NETHERITE_BLOCK,           1,      1),     1);
+
+    }
+
+    private static void addItemToLootTable(Slayer.DifficultyLevel table, LootTableEntry entry, int weight) {
+        //add the specified entry a number of times equal to the weight specified
+        for(int i = 0; i < weight; i++){
+            lootTable.get(table).add(entry);
         }
     }
 
-    private static final SecureRandom random = new SecureRandom();
+    public static ItemStack generateLoot(Slayer.DifficultyLevel dl) {
+        SecureRandom rnd = new SecureRandom();
 
-    public static ItemStack generateLoot(Slayer.DifficultyLevel level) {
-        ItemStack lootItemStack;
-        SlayerLootItem lootItem = SlayerLootItem.randomItemForDifficulty(level);
-        int lootQuantity = SlayerLootItem.randomQuantityForItem(lootItem);
-        lootItemStack = new ItemStack(lootItem.material, lootQuantity);
-        return lootItemStack;
+        //get a random entry from the loot list associated with this difficulty level
+        LootTableEntry entry = lootTable.get(dl).get(rnd.nextInt(lootTable.get(dl).size()));
+
+        return new ItemStack(entry.getMaterial(), entry.randomQuantity());
     }
-
-    public static <T extends Enum<?>> T randomEnum(Class<T> c) {
-        int x = random.nextInt(c.getEnumConstants().length);
-        return c.getEnumConstants()[x];
-    }
-
 }

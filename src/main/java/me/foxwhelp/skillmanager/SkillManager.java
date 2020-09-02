@@ -47,7 +47,7 @@ public final class SkillManager extends JavaPlugin {
             //System.out.println("Foxwhelp's Slayer XP: " + this.getSkillSet().getSlayer().getXp());
             if(sender instanceof Player) {
                 Player p = (Player) sender;
-                ItemStack loot = SlayerLootGenerator.generateLoot(getSkillSet(p).getSlayer().getTask().mobDifficulty);
+                ItemStack loot = SlayerLootGenerator.generateLoot(getSkillSet(p).getSlayer().getTask().DIFFICULTY);
                 p.getInventory().addItem(loot);
 
             }
