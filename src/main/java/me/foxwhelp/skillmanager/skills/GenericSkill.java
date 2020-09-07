@@ -56,20 +56,20 @@ public class GenericSkill {
         // retrieve the player's XP value for this skill from the NBT
         if(playerData.has(xpKey, PersistentDataType.DOUBLE)) {
             xp = playerData.get(xpKey, PersistentDataType.DOUBLE);
-            player.sendMessage(this.toString() + " XP data found for player " + player.getName() + ", set to " + xp);
+            //player.sendMessage(this.toString() + " XP data found for player " + player.getName() + ", set to " + xp);
         }
         else {
-            player.sendMessage("No " + this.toString() + " XP data found for player " + player.getName() + ", setting to 0.");
+            //player.sendMessage("No " + this.toString() + " XP data found for player " + player.getName() + ", setting to 0.");
             xp = 0;
         }
 
         // retrieve the player's level value for this skill from the NBT
         if(playerData.has(levelKey, PersistentDataType.INTEGER)) {
             level = playerData.get(levelKey, PersistentDataType.INTEGER);
-            player.sendMessage(this.toString() + " level data found for player " + player.getName() + ", set to " + level);
+            //player.sendMessage(this.toString() + " level data found for player " + player.getName() + ", set to " + level);
         }
         else {
-            player.sendMessage("No " + this.toString() + " level data found for player " + player.getName() + ", setting to 0.");
+            //player.sendMessage("No " + this.toString() + " level data found for player " + player.getName() + ", setting to 0.");
             level = 0;
         }
     }

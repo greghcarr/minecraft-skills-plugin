@@ -205,6 +205,10 @@ public class Slayer extends GenericSkill {
                 resetStats();
                 player.sendMessage("Slayer stats reset.");
             }
+            if (args[0].equalsIgnoreCase("test")) {
+                //"slayer test..."
+                player.getInventory().addItem(SlayerLootGenerator.generateLoot(DifficultyLevel.ONE));
+            }
             return true;
         }
         return false;
@@ -254,14 +258,14 @@ public class Slayer extends GenericSkill {
             taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.ONE,DifficultyLevel.ONE);
         }
 
-        //level 10-19, 2 to 2 difficulty tasks
+        //level 10-19, 1 to 2 difficulty tasks
         else if(playerLevel >= 10 && playerLevel < 20){
-            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.TWO,DifficultyLevel.TWO);
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.ONE,DifficultyLevel.TWO);
         }
 
-        //level 20-29, 3 to 3 difficulty tasks
+        //level 20-29, 2 to 3 difficulty tasks
         else if(playerLevel >= 20 && playerLevel < 30){
-            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.THREE,DifficultyLevel.THREE);
+            taskMob = SlayerMob.mobDifficultyBetween(DifficultyLevel.TWO,DifficultyLevel.THREE);
         }
 
         //level 30-44, 3 to 4 difficulty tasks
@@ -320,27 +324,27 @@ public class Slayer extends GenericSkill {
         // retrieve the current Slayer task from the NBT
         if (playerData.has(slayerTaskTypeKey, PersistentDataType.STRING)) {
             taskMob = SlayerMob.getSlayerMob(playerData.get(slayerTaskTypeKey, PersistentDataType.STRING));
-            player.sendMessage("Slayer task type data found for player " + player.getName() + ", set to " + taskMob + '.');
+            //player.sendMessage("Slayer task type data found for player " + player.getName() + ", set to " + taskMob + '.');
         } else {
-            player.sendMessage("No Slayer task data found for player " + player.getName() + '.');
+            //player.sendMessage("No Slayer task data found for player " + player.getName() + '.');
             taskMob = SlayerMob.NONE;
         }
 
         // retrieve the current Slayer task kills remaining from the NBT
         if (playerData.has(slayerTaskRemainingKey, PersistentDataType.INTEGER)) {
             taskRemaining = playerData.get(slayerTaskRemainingKey, PersistentDataType.INTEGER);
-            player.sendMessage("Slayer task kills remaining data found for player " + player.getName() + ", set to " + taskRemaining + '.');
+            //player.sendMessage("Slayer task kills remaining data found for player " + player.getName() + ", set to " + taskRemaining + '.');
         } else {
-            player.sendMessage("No Slayer task kills remaining data found for player " + player.getName() + '.');
+            //player.sendMessage("No Slayer task kills remaining data found for player " + player.getName() + '.');
             taskRemaining = 0;
         }
 
         // retrieve the Slayer tasks completed from the NBT
         if (playerData.has(slayerTasksCompletedKey, PersistentDataType.INTEGER)) {
             tasksCompleted = playerData.get(slayerTasksCompletedKey, PersistentDataType.INTEGER);
-            player.sendMessage("Slayer tasks completed data found for player " + player.getName() + ", set to " + tasksCompleted + '.');
+            //player.sendMessage("Slayer tasks completed data found for player " + player.getName() + ", set to " + tasksCompleted + '.');
         } else {
-            player.sendMessage("No Slayer tasks completed data found for player " + player.getName() + '.');
+            //player.sendMessage("No Slayer tasks completed data found for player " + player.getName() + '.');
             tasksCompleted = 0;
         }
 
@@ -383,6 +387,6 @@ public class Slayer extends GenericSkill {
 
     @Override
     public String toString() {
-        return "Slayer";
+        return (ChatColor.AQUA + "Slayer" + ChatColor.WHITE);
     }
 }
